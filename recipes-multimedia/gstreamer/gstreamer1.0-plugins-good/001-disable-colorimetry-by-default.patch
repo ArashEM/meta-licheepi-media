@@ -1,0 +1,13 @@
+diff --git a/sys/v4l2/gstv4l2object.c b/sys/v4l2/gstv4l2object.c
+index f3e0e99..2aefd64 100644
+--- a/sys/v4l2/gstv4l2object.c
++++ b/sys/v4l2/gstv4l2object.c
+@@ -3524,7 +3524,7 @@ gst_v4l2_object_set_format_full (GstV4l2Object * v4l2object, GstCaps * caps,
+   enum v4l2_xfer_func transfer = 0;
+   GstStructure *s;
+   gboolean disable_interlacing = FALSE;
+-  gboolean disable_colorimetry = FALSE;
++  gboolean disable_colorimetry = TRUE;
+ 
+   g_return_val_if_fail (!v4l2object->skip_try_fmt_probes ||
+       gst_caps_is_writable (caps), FALSE);
