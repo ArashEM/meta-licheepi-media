@@ -1,0 +1,14 @@
+# sun6i-isp media controller node
+KERNEL=="media*" , SUBSYSTEM=="media" , ATTR{model}=="Allwinner A31 ISP Device" , SUBSYSTEMS=="platform" , DRIVERS=="sun6i-isp" , SYMLINK+="sun6i-isp-media"
+
+# sun6i-isp capture node
+KERNEL=="video*" , SUBSYSTEM=="video4linux" , ATTR{name}=="sun6i-isp-capture" , SUBSYSTEMS=="platform" ,  DRIVERS=="sun6i-isp" , SYMLINK+="sun6i-isp-capture"
+
+# sun6i-csi capture node
+KERNEL=="video*" , SUBSYSTEM=="video4linux" , ATTR{name}=="sun6i-csi-capture" , SUBSYSTEMS=="platform" ,  DRIVERS=="sun6i-isp" , SYMLINK+="sun6i-csi-capture"
+
+# sun6i-isp param node
+KERNEL=="video*" , SUBSYSTEM=="video4linux" , ATTR{name}=="sun6i-isp-params" , SUBSYSTEMS=="platform" ,  DRIVERS=="sun6i-isp" , SYMLINK+="sun6i-isp-params"
+
+# cedrus decode
+KERNEL=="media*" , SUBSYSTEM=="media" ,  ATTR{model}=="cedrus" , SUBSYSTEMS=="platform" , DRIVERS=="cedrus" , SYMLINK+="sun6i-cedrus"
