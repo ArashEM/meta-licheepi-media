@@ -272,6 +272,10 @@ PACKAGE_FEED_URIS = "http://192.168.17.63:80"
 EXTRA_IMAGE_FEATURES += " package-management "
 IMAGE_ROOTFS_EXTRA_SPACE = "102400"
 
+# kernel version
+PREFERRED_PROVIDER_virtual/kernel = "linux-mainline"
+PREFERRED_VERSION_linux-mainline = "6.%"
+
 # required licenses
 LICENSE_FLAGS_ACCEPTED = " \
     commercial_gstreamer1.0-plugins-ugly \

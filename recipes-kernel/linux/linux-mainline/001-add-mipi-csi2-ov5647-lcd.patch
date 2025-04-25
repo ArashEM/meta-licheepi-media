@@ -1,0 +1,260 @@
+diff --git a/arch/arm/boot/dts/allwinner/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/boot/dts/allwinner/sun8i-v3s-licheepi-zero-dock.dts
+index 752ad05..38ecd23 100644
+--- a/arch/arm/boot/dts/allwinner/sun8i-v3s-licheepi-zero-dock.dts
++++ b/arch/arm/boot/dts/allwinner/sun8i-v3s-licheepi-zero-dock.dts
+@@ -57,6 +57,158 @@
+ 		/* The LEDs use PG0~2 pins, which conflict with MMC1 */
+ 		status = "disabled";
+ 	};
++
++	isp: isp@1cb8000 {
++        compatible = "allwinner,sun8i-v3s-isp";
++        reg = <0x01cb8000 0x1000>;
++        interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
++        clocks = <&ccu CLK_BUS_CSI>,
++             <&ccu CLK_CSI1_SCLK>,
++             <&ccu CLK_DRAM_CSI>;
++        clock-names = "bus", "mod", "ram";
++        resets = <&ccu RST_BUS_CSI>;
++		status = "okay";
++
++        ports {
++            #address-cells = <1>;
++            #size-cells = <0>;
++
++            port@0 {
++                reg = <0>;
++                isp_in_csi0: endpoint {
++                    remote-endpoint = <&csi0_ep2>;
++                };
++            };
++        };
++    };
++
++	video-codec@1c0e000 {
++		compatible = "allwinner,sun8i-h3-video-engine";
++		reg = <0x01c0e000 0x1000>;
++		clocks = <&ccu CLK_BUS_VE>, <&ccu CLK_VE>,
++			 <&ccu CLK_DRAM_VE>;
++		clock-names = "ahb", "mod", "ram";
++		resets = <&ccu RST_BUS_VE>;
++		interrupts = <GIC_SPI 58 IRQ_TYPE_LEVEL_HIGH>;
++		allwinner,sram = <&ve_sram 1>;
++	};
++
++	csi0: camera@1cb0000 {
++		compatible = "allwinner,sun8i-v3s-csi";
++		reg = <0x01cb0000 0x1000>;
++		interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&ccu CLK_BUS_CSI>,
++				 <&ccu CLK_CSI1_SCLK>,
++				 <&ccu CLK_DRAM_CSI>;
++		clock-names = "bus", "mod", "ram";
++		resets = <&ccu RST_BUS_CSI>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@1 {
++				reg = <1>;
++				csi0_in_mipi_csi2: endpoint {
++					remote-endpoint = <&mipi_csi2_out_csi0>;
++				};
++			};
++
++			port@2 {
++				reg = <2>;
++				csi0_ep2: endpoint {
++					remote-endpoint = <&isp_in_csi0>;
++				};
++			};
++		};
++	};
++
++	mipi_csi2: csi@1cb1000 {
++		compatible = "allwinner,sun8i-v3s-mipi-csi2",
++				     "allwinner,sun6i-a31-mipi-csi2";
++		reg = <0x01cb1000 0x1000>;
++		interrupts = <GIC_SPI 90 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&ccu CLK_BUS_CSI>,
++				 <&ccu CLK_CSI1_SCLK>;
++		clock-names = "bus", "mod";
++		resets = <&ccu RST_BUS_CSI>;
++
++		phys = <&dphy>;
++		phy-names = "dphy";
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			mipi_csi2_in: port@0 {
++				reg = <0>;
++				mipi_csi2_in_ov5647: endpoint {
++                    data-lanes = <1 2>;
++                    remote-endpoint = <&ov5647_out_mipi_csi2>;
++                };
++			};
++
++			mipi_csi2_out: port@1 {
++				reg = <1>;
++				mipi_csi2_out_csi0: endpoint {
++					remote-endpoint = <&csi0_in_mipi_csi2>;
++				};
++			};
++		};
++	};
++
++	dphy: d-phy@1cb2000 {
++		compatible = "allwinner,sun6i-a31-mipi-dphy";
++		reg = <0x01cb2000 0x1000>;
++		clocks = <&ccu CLK_BUS_CSI>,
++				 <&ccu CLK_MIPI_CSI>;
++		clock-names = "bus", "mod";
++		resets = <&ccu RST_BUS_CSI>;
++		allwinner,direction = "rx";
++		#phy-cells = <0>;
++	};
++
++	osc25M: osc25M-clk {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <25000000>;
++		clock-accuracy = <50000>;
++		clock-output-names = "osc25M";
++	};
++
++	vdd_bl: regulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "bl-3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-always-on;
++	};
++
++	backlight: backlight {
++		compatible = "gpio-backlight";
++		gpios = <&pio 1 4 GPIO_ACTIVE_HIGH>; /* PB4 */
++		default-on;
++		status = "disabled";
++	};
++
++	panel: panel {
++		compatible = "rocktech,rk070er9427", "simple-panel";
++		power-supply = <&vdd_bl>;
++		#backlight = <&backlight>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			panel_input: endpoint@0 {
++				reg = <0>;
++				remote-endpoint = <&tcon0_out_lcd>;
++			};
++		};
++	};
+ };
+ 
+ &emac {
+@@ -103,3 +255,96 @@
+ 	vmmc-supply = <&reg_vcc3v3>;
+ 	status = "okay";
+ };
++
++&i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pe_pins>;
++	status = "okay";
++};
++
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++	status = "okay";
++
++	ov5647: camera@36 {
++        compatible = "ovti,ov5647";
++        reg = <0x36>;
++		clocks = <&osc25M>;
++
++        port {
++            ov5647_out_mipi_csi2: endpoint {
++                    remote-endpoint = <&mipi_csi2_in_ov5647>;
++            };
++        };
++    };
++};
++
++&syscon {
++	sram_c: sram@1d00000 {
++		compatible = "mmio-sram";
++		reg = <0x01d00000 0x80000>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x01d00000 0x80000>;
++
++		ve_sram: sram-section@0 {
++			compatible = "allwinner,sun8i-h3-sram-c1",
++					     "allwinner,sun4i-a10-sram-c1";
++			reg = <0x000000 0x80000>;
++		};
++	};
++};
++
++&pio {
++	lcd_rgb666_pins: lcd-rgb666-pins {
++    pins = "PE0", "PE1", "PE2", "PE3", "PE4",
++            "PE5", "PE6", "PE7", "PE8", "PE9",
++            "PE10", "PE11", "PE12", "PE13", "PE14",
++            "PE15", "PE16", "PE17", "PE18", "PE19",
++            "PE23", "PE24";
++			function = "lcd";
++    };
++};
++
++&de {
++	status = "okay";
++};
++
++&tcon0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&lcd_rgb666_pins>;
++	status = "okay";
++};
++
++&tcon0_out {
++	tcon0_out_lcd: endpoint@0 {
++		reg = <0>;
++		remote-endpoint = <&panel_input>;
++	};
++};
++
++&pwm {
++	pinctrl-0 = <&pwm0_pin>;
++	pinctrl-names = "default";
++	status = "disabled";
++};
++
++&usb_otg {
++	dr_mode = "host";
++};
++
++&ehci {
++	status = "okay";
++};
++
++&ohci {
++	status = "okay";
++};
++
++&codec {
++	allwinner,audio-routing = "Speaker", "HP",
++				  "MIC1", "Mic",
++				  "Mic", "HBIAS";
++	status = "okay";
++};
