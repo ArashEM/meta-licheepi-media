@@ -1,11 +1,8 @@
 FILESEXTRAPATHS:prepend:sunxi := "${THISDIR}/files:"
 
-SRC_URI:append:sunxi = " \
-    file://uEnv.txt \
-"
+SRC_URI:remove = "file://boot.cmd"
+SRC_URI:append = "file://licheepi-boot.cmd"
 
-UENV_FILE = "uEnv.txt"
-
-do_deploy:append:sunxi() {
-    install -m 644 ${WORKDIR}/${UENV_FILE} ${DEPLOYDIR}/${UENV_FILE}
+do_compile:prepend() {
+    cp ${WORKDIR}/licheepi-boot.cmd ${WORKDIR}/boot.cmd
 }

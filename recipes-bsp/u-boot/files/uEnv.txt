@@ -1,1 +1,0 @@
-fdtfile=sun8i-v3s-licheepi-zero-dock.dtb
