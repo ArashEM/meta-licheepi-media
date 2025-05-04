@@ -32,3 +32,30 @@ bitbake media-image
 sudo dd if=tmp/deploy/images/licheepi-zero-dock/media-image-licheepi-zero-dock.sunxi-sdimg of=/dev/sdX
 ```
 5. Enjoy :-)
+
+# GStreamer example
+1. Turn backlight on 
+```
+echo 36 > /sys/class/gpio/export 
+echo out > /sys/class/gpio/gpio36/direction 
+echo 1 > /sys/class/gpio/gpio36/value
+```
+
+2. Configure media pipeline 
+```
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'ov5647 0-0036':0[fmt:SBGGR10_1X10/640x480 field:none]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-mipi-csi2':1[fmt:SBGGR10_1X10/640x480]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-csi-bridge':1[fmt:SBGGR10_1X10/640x480]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-isp-proc':1[fmt:SBGGR10_1X10/640x480]"
+```
+3. Configure camera for automatic gain, exposure and white balancing 
+```
+v4l2-ctl -d /dev/v4l-subdev3 --set-ctrl gain_automatic=1
+v4l2-ctl -d /dev/v4l-subdev3 --set-ctrl auto_exposure=0
+v4l2-ctl -d /dev/v4l-subdev3 --set-ctrl white_balance_automatic=1
+```
+
+4. Start a pipeline from camera to LCD (gray scale mode)
+```
+gst-launch-1.0 v4l2src device=/dev/sun6i-isp-capture num-buffers=200 ! video/x-raw,width=640,height=480,format=NV12 ! videoconvert ! video/x-raw,format=GRAY8 ! videoconvert ! fbdevsink sync=false
+``` 
