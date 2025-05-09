@@ -64,9 +64,3 @@ IMAGE_INSTALL:append = " \
     ${MISC_TOOLS} \
     ${MEDIA_TOOLS} \
 "
-
-add_swapfile() {
-    dd if=/dev/zero of=${IMAGE_ROOTFS}/swapfile bs=1M count=100
-    mkswap ${IMAGE_ROOTFS}/swapfile
-}
-ROOTFS_POSTPROCESS_COMMAND:append = "add_swapfile;"
