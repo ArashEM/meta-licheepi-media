@@ -12,6 +12,7 @@ Also following items are active too
 
 Before using LicheePi-Zero-Dock mipi-csi2 interface, please check [v3s-mipi-csi2 repository](https://github.com/ArashEM/v3s-mipi-csi2). You need to do some hardware things!  
 
+![lichee-camera](doc/licheepi-ov5647.jpg)
 
 # Getting started
 1. Clone required layers:
