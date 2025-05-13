@@ -46,6 +46,8 @@ MEDIA_TOOLS = " \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-plugins-ugly \
     gstreamer1.0-libav \
+    libcamera \
+    libcamera-gst \
     opencv-apps \
     zbar \
     ffmpeg \
