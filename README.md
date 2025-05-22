@@ -77,4 +77,11 @@ Then mount it via `offset` argument:
 sudo mount -o rw,offset=$((512*86016)) file media-image-licheepi-zero-dock.wic /mnt/
 ```
 
-2. `swap` partition is necessary! So consider using high speed SD card. Otherwise you may encounter issue using `GStreamer`.
+2. `swap` partition is necessary! So consider using high speed SD card. Otherwise you may encounter issue using `GStreamer`.  
+
+3. In order to compile `libcamera` with poky sdk you need `jinja2`, `ply` and `pyyaml`. Which are not shipped with sdk. Easy way to install them is using `pip`. This way packages are install into `/opt/sdk/sysroots/x86_64-pokysdk-linux/usr/lib/python3.10/site-packages`. It's local repository of packages inside sdk sysroot.
+```bash
+source /opt/sdk/environment-setup-cortexa7t2hf-neon-poky-linux-gnueabi
+python3.10 -m ensurepip --upgrade
+python3.10 -m pip install ply jinja2 pyyaml
+```
