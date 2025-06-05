@@ -49,10 +49,10 @@ echo 1 > /sys/class/gpio/gpio36/value
 
 2. Configure media pipeline 
 ```
-media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'ov5647 0-0036':0[fmt:SBGGR10_1X10/640x480 field:none]"
-media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-mipi-csi2':1[fmt:SBGGR10_1X10/640x480]"
-media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-csi-bridge':1[fmt:SBGGR10_1X10/640x480]"
-media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-isp-proc':1[fmt:SBGGR10_1X10/640x480]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'ov5647 0-0036':0[fmt:SBGGR10_1X10/1296x972 field:none]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-mipi-csi2':1[fmt:SBGGR10_1X10/1296x972]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-csi-bridge':1[fmt:SBGGR10_1X10/1296x972]"
+media-ctl -d /dev/sun6i-isp-media --set-v4l2 "'sun6i-isp-proc':1[fmt:SBGGR10_1X10/1296x972]"
 ```
 3. Configure camera for automatic gain, exposure and white balancing 
 ```
@@ -63,9 +63,16 @@ v4l2-ctl -d /dev/v4l-subdev3 --set-ctrl white_balance_automatic=1
 
 4. Start a pipeline from camera to LCD (gray scale mode)
 ```
-gst-launch-1.0 v4l2src device=/dev/sun6i-isp-capture num-buffers=200 ! video/x-raw,width=640,height=480,format=NV12 ! videoconvert ! video/x-raw,format=GRAY8 ! videoconvert ! fbdevsink sync=false
+gst-launch-1.0  v4l2src device=/dev/sun6i-isp-capture num-buffers=150 \
+! video/x-raw,format=NV12,width=1296,height=972,framerate=30/1 \
+! videoscale \
+! video/x-raw,width=648,height=486 \
+! videoconvert  \
+! fpsdisplaysink video-sink=fbdevsink sync=false
 ``` 
-# Nots
+Note: I'm using `648x486` for scaling because it's easier for `videoscale` to **1/4** image rather than `800x480` which is actual LCD size.
+
+# Notes
 1. You can configure your image before burning into SD card. for example setting `wpa-psk`.  
 first check start sector of interested partition
 ```base

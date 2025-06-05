@@ -1,1 +1,1 @@
-PACKAGECONFIG:append = " v4l2codecs"
+PACKAGECONFIG:append = " v4l2codecs zbar"
