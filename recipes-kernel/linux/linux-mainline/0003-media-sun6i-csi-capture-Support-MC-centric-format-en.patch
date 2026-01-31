@@ -1,0 +1,91 @@
+From 2c7f1a1fae004016653854d90b8644ac1b820c7b Mon Sep 17 00:00:00 2001
+From: Arash Golgol <arash.golgol@gmail.com>
+Date: Fri, 23 Jan 2026 08:41:29 +0330
+Subject: [PATCH 3/3] media: sun6i-csi: capture: Support MC-centric format
+ enumeration
+
+When the capture device is used as part of a media controller pipeline,
+formats must be enumerated based on the mbus code negotiated on the
+upstream sub-device.
+
+Extend vidioc_enum_fmt to support MC-centric enumeration by filtering
+pixel formats based on the provided mbus code. Advertise MC I/O support
+on the video device to reflect its intended usage within a media graph.
+
+This enables correct format negotiation for userspace relying on the
+media controller API (e.g Libcamera)
+
+Signed-off-by: Arash Golgol <arash.golgol@gmail.com>
+---
+ .../sunxi/sun6i-csi/sun6i_csi_capture.c       | 38 +++++++++++++++++--
+ 1 file changed, 35 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_capture.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_capture.c
+index 4cb9d0d8ad6d..4c052db1b9fd 100644
+--- a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_capture.c
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_capture.c
+@@ -327,6 +327,21 @@ static bool sun6i_csi_capture_format_match(u32 pixelformat, u32 mbus_code)
+ 	return false;
+ }
+ 
++static const u32 *sun6i_csi_capture_pixelformat_find(u32 mbus_code)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(sun6i_csi_capture_format_matches); i++) {
++		const struct sun6i_csi_capture_format_match *match =
++			&sun6i_csi_capture_format_matches[i];
++
++		if (match->mbus_code == mbus_code)
++			return &match->pixelformat;
++	}
++
++	return NULL;
++}
++
+ /* Capture */
+ 
+ static void
+@@ -729,11 +744,27 @@ static int sun6i_csi_capture_enum_fmt(struct file *file, void *priv,
+ 				      struct v4l2_fmtdesc *fmtdesc)
+ {
+ 	u32 index = fmtdesc->index;
++	u32 mbus_code = fmtdesc->mbus_code;
++	const u32 *pixelformat;
++
++	/* MC-centric or Video-node-centric */
++	if (mbus_code) {
++		/* There is only one pixelformat for a mbus_code. */
++		if (index)
++			return -EINVAL;
++
++		pixelformat = sun6i_csi_capture_pixelformat_find(mbus_code);
++	} else {
++		if (index >= ARRAY_SIZE(sun6i_csi_capture_formats))
++			return -EINVAL;
++
++		pixelformat = &sun6i_csi_capture_formats[index].pixelformat;
++	}
+ 
+-	if (index >= ARRAY_SIZE(sun6i_csi_capture_formats))
++	if (!pixelformat)
+ 		return -EINVAL;
+ 
+-	fmtdesc->pixelformat = sun6i_csi_capture_formats[index].pixelformat;
++	fmtdesc->pixelformat = *pixelformat;
+ 
+ 	return 0;
+ }
+@@ -1056,7 +1087,8 @@ int sun6i_csi_capture_setup(struct sun6i_csi_device *csi_dev)
+ 
+ 	strscpy(video_dev->name, SUN6I_CSI_CAPTURE_NAME,
+ 		sizeof(video_dev->name));
+-	video_dev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	video_dev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++				 V4L2_CAP_IO_MC;
+ 	video_dev->vfl_dir = VFL_DIR_RX;
+ 	video_dev->release = video_device_release_empty;
+ 	video_dev->fops = &sun6i_csi_capture_fops;
+-- 
+2.34.1
+
